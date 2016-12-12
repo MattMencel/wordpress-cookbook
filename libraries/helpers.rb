@@ -20,8 +20,9 @@
 #
 
 module Wordpress
+  # Simple helper function to determine if we are running against a local database server
   module Helpers
-    def is_local_host?(host)
+    def local_host?(host)
       if host == 'localhost' || host == '127.0.0.1' || host == '::1'
         true
       else

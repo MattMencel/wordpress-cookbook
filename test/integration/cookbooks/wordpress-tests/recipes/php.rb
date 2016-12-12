@@ -1,8 +1,8 @@
 #
-# Cookbook Name:: wordpress
-# Recipe:: default
+# Cookbook Name:: wordpress-tests
+# Recipe:: php
 #
-# Copyright 2009-2010, Opscode, Inc.
+# Copyright 2017, Antek S. Baranski <antek.baranski@gmail.com>
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,5 +17,15 @@
 # limitations under the License.
 #
 
-include_recipe 'wordpress::database'
-include_recipe 'wordpress::apache'
+# This recipe demonstrates how to get a custom PHP version installed with nginx and ssl for your WordPress install
+
+node.default['php']['package_options'] = '--enablerepo=remi* --enablerepo=remi-php70'
+
+include_recipe 'yum-remi-chef::remi'
+include_recipe 'yum-remi-chef::remi-php70'
+
+include_recipe 'wordpress-tests::nginx'
+
+package 'php-mcrypt' do
+  action :install
+end

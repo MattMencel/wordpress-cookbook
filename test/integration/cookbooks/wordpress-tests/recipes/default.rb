@@ -1,8 +1,8 @@
 #
-# Cookbook Name:: wordpress
+# Cookbook Name:: wordpress-tests
 # Recipe:: default
 #
-# Copyright 2009-2010, Opscode, Inc.
+# Copyright 2017, Antek S. Baranski <antek.baranski@gmail.com>
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,5 +17,8 @@
 # limitations under the License.
 #
 
-include_recipe 'wordpress::database'
-include_recipe 'wordpress::apache'
+apt_update 'all repos' do
+  action :update
+end if node['platform_family'] == 'debian'
+
+include_recipe 'wordpress::default'

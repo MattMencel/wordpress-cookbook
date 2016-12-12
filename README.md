@@ -1,98 +1,85 @@
-[![Build Status](https://travis-ci.org/brint/wordpress-cookbook.svg?branch=master)](https://travis-ci.org/brint/wordpress-cookbook)
-[![Dependency Status](https://gemnasium.com/brint/wordpress-cookbook.svg)](https://gemnasium.com/brint/wordpress-cookbook)
+# Description
 
-Description
-===========
+Installs/Configures WordPress LAMP stack on Linux & Windows
 
-The Chef WordPress cookbook installs and configures WordPress according to the instructions at http://codex.wordpress.org/Installing_WordPress.
+# Requirements
 
-Description
-===========
+## Platform:
 
-This cookbook does not set up the WordPress blog. You will need to do this manually by going to http://hostname/wp-admin/install.php (this URL may be different if you change the attribute values).
-
-Requirements
-============
-
-Platform
---------
-
-* Ubuntu 12.04, 14.04
-* RHEL/CentOS 5, 6
-* Windows
-
-Cookbooks
----------
-
-* mysql
-* mysql_chef_gem
-* php
-* apache2
-* iis
+* centos
+* ubuntu
+* debian
 * windows
-* openssl (uses library to generate secure passwords)
-* selinux (used to disable selinux for MySQL on RHEL-based systems)
+* redhat
+* scientific
+* oracle
 
-Attributes
-==========
+## Cookbooks:
 
-### WordPress
+* php
+* openssl
+* apache2 (>= 2.0.0)
+* database (>= 1.6.0)
+* mysql (< 7.0)
+* mysql2_chef_gem (~> 1.0.1)
+* iis (>= 1.6.2)
+* tar (>= 0.3.1)
+* chef_nginx (~> 5.1)
+* selinux (~> 0.7)
 
-* `node['wordpress']['version']` - Version of WordPress to download. Use 'latest' to download most recent version.
-* `node['wordpress']['parent_dir']` - Parent directory to where WordPress will be extracted. (Windows Only)
-* `node['wordpress']['dir']` - Location to place WordPress files.
-* `node['wordpress']['db']['root_password']` - Root password for MySQL (added for support with community cookbook version 6+)
-* `node['wordpress']['db']['instance_name']` - Name of the MySQL instance to use with MySQL (community cookbook version 6+)
-* `node['wordpress']['db']['name']` - Name of the WordPress MySQL database.
-* `node['wordpress']['db']['user']` - Name of the WordPress MySQL user.
-* `node['wordpress']['db']['pass']` - Password of the WordPress MySQL user. By default, generated using openssl cookbook.
-* `node['wordpress']['db']['prefix']` - Prefix of all MySQL tables created by WordPress.
-* `node['wordpress']['db']['host']` - Host of the WordPress MySQL database.
-* `node['wordpress']['db']['port']` - Port of the WordPress MySQL database.
-* `node['wordpress']['db']['charset']` - [Character set](http://dev.mysql.com/doc/refman/5.7/en/charset-charsets.html) of the WordPress MySQL database tables. Defaults to 'utf8'.
-* `node['wordpress']['db']['collate']` - [Collation](http://dev.mysql.com/doc/refman/5.7/en/charset-collation-effect.html) of the WordPress MySQL database tables.
-* `node['wordpress']['db']['mysql_version']` - Version of MySQL to install (for supporting community cookbook version 6+)
+# Attributes
 
-* `node['wordpress']['allow_multisite']` - Enable [multisite](http://codex.wordpress.org/Create_A_Network) features (default: false).
-* `node['wordpress']['wp_config_options']` - A hash of options to define in wp_config.php, output as key value pairs into a PHP constant e.g. `define( '<%= @key %>', <%= @value %> );`. Note: for values you will need to add single quotes around text but omit them for booleans and numbers. (default: {}).
-* `node['wordpress']['config_perms']` - Permissions to set for a site's wp-config.php.
-* `node['wordpress']['server_aliases']` - Aliases to use when setting up Virtual Host with Nginx or Apache
-* `node['wordpress']['server_port']` - Port to use when setting up the Virtual Host with Nginx or Apache
+* `node['wordpress']['version']` -  Defaults to `latest`.
+* `node['wordpress']['creds']['databag']` -  Defaults to `nil # You must provide your own databag with 2 encrypted passwords in it.`.
+* `node['wordpress']['db']['instance_name']` -  Defaults to `default`.
+* `node['wordpress']['db']['user']` -  Defaults to `wordpressuser`.
+* `node['wordpress']['db']['prefix']` -  Defaults to `wp_`.
+* `node['wordpress']['db']['hosts']` -  Defaults to `%w(localhost)`.
+* `node['wordpress']['db']['port']` -  Defaults to `3306' # Must be a string`.
+* `node['wordpress']['db']['charset']` -  Defaults to `utf8`.
+* `node['wordpress']['db']['collate']` -  Defaults to ``.
+* `node['wordpress']['db']['mysql_version']` -  Defaults to `case node['platform']`.
+* `node['wordpress']['allow_multisite']` -  Defaults to `false`.
+* `node['wordpress']['ssl_enabled']` -  Defaults to `false`.
+* `node['wordpress']['production']` -  Defaults to `true # This attribute controls PHP debug data output, here be Dragons in production.`.
+* `node['wordpress']['wp_config_options']` -  Defaults to `{ ... }`.
+* `node['wordpress']['config_perms']` -  Defaults to `0644`.
+* `node['wordpress']['server_aliases']` -  Defaults to `[ ... ]`.
+* `node['wordpress']['server_port']` -  Defaults to `80`.
+* `node['wordpress']['install']['user']` -  Defaults to `node['apache']['user']`.
+* `node['wordpress']['install']['group']` -  Defaults to `node['apache']['group']`.
+* `node['wordpress']['languages']['lang']` -  Defaults to ``.
+* `node['wordpress']['languages']['version']` -  Defaults to ``.
+* `node['wordpress']['languages']['repourl']` -  Defaults to `http://translate.wordpress.org/projects/wp`.
+* `node['wordpress']['languages']['projects']` -  Defaults to `%w(main admin admin_network continents_cities)`.
+* `node['wordpress']['languages']['themes']` -  Defaults to `[ ... ]`.
+* `node['wordpress']['languages']['project_pathes']` -  Defaults to `{ ... }`.
+* `node['wordpress']['languages']['project_pathes']["twenty#{year}"]` -  Defaults to `/twenty#{year}/`.
+* `node['wordpress']['languages']['urls'][project]` -  Defaults to `node['wordpress']['languages']['repourl'] + '/' +`.
+* `node['wordpress']['parent_dir']` -  Defaults to `/var/www`.
+* `node['wordpress']['dir']` -  Defaults to `#{node['wordpress']['parent_dir']}/wordpress`.
+* `node['wordpress']['url']` -  Defaults to `https://wordpress.org/wordpress-#{node['wordpress']['version']}.tar.gz`.
+* `node['wordpress']['server_name']` -  Defaults to `node['fqdn']`.
+* `node['wordpress']['php_options']` -  Defaults to `{ ... }`.
+* `node['php']['ini']['cookbook']` -  Defaults to `wordpress`.
+* `node['php']['fpm_user']` -  Defaults to `node['apache']['user']`.
+* `node['php']['fpm_group']` -  Defaults to `node['apache']['group']`.
+* `node['php']['fpm_listen_user']` -  Defaults to `node['apache']['user']`.
+* `node['php']['fpm_listen_group']` -  Defaults to `node['apache']['group']`.
 
-* `node['wordpress']['install']['user']` - Install user used for WordPress file permissions and the PHP-FPM user (if applicable)
-* `node['wordpress']['install']['group']` - Install group used for WordPress file permissions and the PHP-FPM group (if necessary)
+# Recipes
 
-* `node['wordpress']['parent_dir']` - Parent directory of where WordPress will be installed. This is used in the Windows installation to determine where the .zip will be downloaded to.
-* `node['wordpress']['dir']` - Path where WordPress should be installed
-* `node['wordpress']['url']` - URL to the zip or tarball installer of WordPress
-* `node['wordpress']['server_name']` - Hostname used for setting up the Virtual Host configuration for your WordPress site
+* wordpress::default - Installs and configures WordPress LAMP stack on a single system
+* wordpress::database - Installs the MySQL database for WordPress on a node
+* wordpress::apache - Installs the WordPress LAP stack on a node, depends on wordpress::database to be run on a different node
+* wordpress::nginx - Installs the WordPress Nginx stack on a node, depends on wordpress::database to be run on a different node
+* wordpress::app - Configres a WordPress instances on a node
+* wordpress::languages - Install WordPress translation files
 
-* `node['wordpress']['php_options']` - Additional PHP settings for the installation.
+# License and Maintainer
 
-Usage
-=====
+Maintainer:: Brint O'Hearn (<cookbooks@opscode.com>)
+Source:: https://github.com/brint/wordpress-cookbook
+Issues:: https://github.com/brint/wordpress-cookbook/issues
 
-Add the "wordpress" recipe to your node's run list or role, or include the recipe in another cookbook.
-
-License and Author
-==================
-
-* Author:: Barry Steinglass (barry@opscode.com)
-* Author:: Joshua Timberman (joshua@opscode.com)
-* Author:: Seth Chisamore (schisamo@opscode.com)
-* Author:: Lucas Hansen (lucash@opscode.com)
-* Author:: Julian C. Dunn (jdunn@getchef.com)
-
-Copyright:: 2010-2013, Chef Software, Inc.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
+License:: Apache v2.0

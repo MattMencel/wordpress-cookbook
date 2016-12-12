@@ -18,45 +18,39 @@
 #
 
 node.set_unless['php-fpm']['pools'] = []
+node.set_unless['nginx']['default_site_enabled'] = false
 
-include_recipe "php-fpm"
+include_recipe 'chef_nginx'
+include_recipe 'php'
 
-php_fpm_pool "wordpress" do
-  listen "127.0.0.1:9001"
+package node['php']['mysql']['package'] do
+  action :install
+end
+
+php_fpm_pool 'wordpress' do
+  listen '127.0.0.1:9001'
   user node['wordpress']['install']['user']
   group node['wordpress']['install']['group']
-  if node['platform'] == 'ubuntu' and node['platform_version'] == '10.04'
-    process_manager 'dynamic'
-  end
-  listen_owner node['wordpress']['install']['user']
-  listen_group node['wordpress']['install']['group']
-  php_options node['wordpress']['php_options']
+  additional_config node['wordpress']['php_options']
+  max_spare_servers 5
   start_servers 5
+  max_children 65
 end
 
-include_recipe "php::module_mysql"
+include_recipe 'wordpress::app'
 
-node.set_unless['nginx']['default_site_enabled'] = false
-include_recipe "nginx"
-
-include_recipe "wordpress::app"
-
-template "#{node['nginx']['dir']}/sites-enabled/wordpress.conf" do
-  source "nginx.conf.erb"
+template "#{node['nginx']['dir']}/sites-available/wordpress" do
+  source 'nginx.conf.erb'
   variables(
-    :docroot          => node['wordpress']['dir'],
-    :server_name      => node['wordpress']['server_name'],
-    :server_aliases   => node['wordpress']['server_aliases'],
-    :server_port      => node['wordpress']['server_port']
+    'docroot' => node['wordpress']['dir'],
+    'server_name' => node['wordpress']['server_name'],
+    'server_aliases' => node['wordpress']['server_aliases'],
+    'server_port' => node['wordpress']['server_port']
   )
   action :create
+  notifies :reload, 'service[nginx]', :delayed
 end
 
-# The following block is specifically for OS's like CentOS that include a
-# default site as a part of the install. This block will only be triggered if
-# node['nginx']['default_site_enable'] is set to false.
-file File.join(node['nginx']['dir'], 'conf.d', 'default.conf') do
-  action :delete
-  notifies :reload, 'service[nginx]'
-  only_if { node['platform_family'] == 'rhel' && !node['nginx']['default_site_enabled'] }
+nginx_site 'wordpress' do
+  enable true
 end

@@ -1,31 +1,66 @@
-driver_plugin: vagrant
-driver_config:
-  require_chef_omnibus: true
+---
+driver:
+  name: vagrant
+  customize:
+    cpus: 2
+  network:
+    - ["forwarded_port", {guest: 80, host: 8080}]
+  attributes:
+    wordpress:
+      production: false
+
+provisioner:
+  name: chef_zero
+  always_update_cookbooks: true
+
+verifier:
+  name: inspec
 
 platforms:
-  - name: ubuntu-12.04
-    run_list:
-      - recipe[apt]
   - name: ubuntu-14.04
-    run_list:
-      - recipe[apt]
-  - name: centos-6.6
-  - name: centos-5.11
+  - name: ubuntu-16.04
+  - name: centos-6.8
+  - name: centos-7.2
 
 suites:
   - name: default
     run_list:
-      - recipe[wordpress]
+      - recipe[wordpress-tests::default]
     attributes:
-      mysql:
-        server_root_password: "Please-Dont-Use-In-Production"
-        server_debian_password: "Please-Dont-Use-In-Production"
-        server_repl_password: "Please-Dont-Use-In-Production"
+      wordpress:
+        creds:
+          databag: 'wordpress'
+        db:
+          name: 'wordpress_test'
+          user: 'test_user'
   - name: nginx
+    driver:
+      network:
+        - ["forwarded_port", {guest: 443, host: 8443}]
     run_list:
-      - recipe[wordpress::nginx]
+      - recipe[wordpress-tests::nginx]
     attributes:
-      mysql:
-        server_root_password: "Please-Dont-Use-In-Production"
-        server_debian_password: "Please-Dont-Use-In-Production"
-        server_repl_password: "Please-Dont-Use-In-Production"
+      wordpress:
+        creds:
+          databag: 'wordpress'
+        db:
+          name: 'wordpress_test'
+          user: 'test_user'
+        ssl_enabled: true
+  - name: php
+    driver:
+      network:
+        - ["forwarded_port", {guest: 443, host: 8443}]
+    run_list:
+      - recipe[wordpress-tests::php]
+    attributes:
+      wordpress:
+        creds:
+          databag: 'wordpress'
+        db:
+          name: 'wordpress_test'
+          user: 'test_user'
+        ssl_enabled: true
+    exclude:
+      ubuntu-14.04
+      ubuntu-16.04

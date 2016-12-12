@@ -1,7 +1,8 @@
-source "https://supermarket.getchef.com"
-
-metadata
+source 'https://supermarket.chef.io'
 
 group :integration do
-  cookbook 'apt', '~> 2.6.1'
+  cookbook 'wordpress-tests', path: './test/integration/cookbooks/wordpress-tests'
+  cookbook 'yum-remi-chef'
 end
+
+metadata
