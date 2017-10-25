@@ -30,7 +30,7 @@ depends 'mysql2_chef_gem', '~> 1.0.1'
 depends 'iis', '>= 1.6.2'
 depends 'tar', '>= 0.3.1'
 depends 'chef_nginx', '~> 5.1'
-depends 'selinux', '~> 0.7'
+depends 'selinux'
 
 %w(debian ubuntu windows centos redhat scientific oracle).each do |os|
   supports os
